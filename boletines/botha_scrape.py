@@ -1,14 +1,15 @@
-import requests
-from bs4 import BeautifulSoup, NavigableString
-from datetime import datetime, timedelta
+import argparse
+import difflib
+import html
+import json
 import os
 import re
-import argparse
-import json
+import unicodedata
+from datetime import datetime, timedelta
 from urllib.parse import urljoin, urlparse, parse_qs
-import html 
-import unicodedata  
-import difflib
+
+import requests
+from bs4 import BeautifulSoup
 
 
 def daterange(start_date, end_date):
@@ -17,7 +18,6 @@ def daterange(start_date, end_date):
     while current <= end_date:
         yield current
         current += timedelta(days=1)
-
 
 
 def extraer_enlaces(html, base_url):
@@ -74,7 +74,7 @@ def normalize_text(text: str) -> str:
     # cambiar comillas tipográficas por comillas simples
     text = text.replace("'", '"')
     # eliminar comillas
-    text = text.replace('"', '')    
+    text = text.replace('"', '')
     # eliminar >> y <<
     text = text.replace(">>", "").replace("<<", "").replace("«", "").replace("»", "").replace("“", "").replace("”", "")
     # Convertir guiones entre letras en espacio (ej. "egoitza-zentro" -> "egoitza zentro")
@@ -114,7 +114,7 @@ def scrape_y_guardar(url, url_eu, directorio, fecha, titulo_es, titulo_eu, id):
             raise ValueError("El formato de fecha debe ser DD/MM/YYYY o YYYY-MM-DD")
     fecha_formateada = fecha_obj.strftime("%Y-%m-%d")
     anio = fecha_obj.strftime("%Y")
-    
+
     # Obtención del HTML
     try:
         resp = requests.get(url)
@@ -122,7 +122,7 @@ def scrape_y_guardar(url, url_eu, directorio, fecha, titulo_es, titulo_eu, id):
     except Exception as e:
         print(f"Error al obtener la url: {e}")
         return
-    
+
     resp.encoding = resp.apparent_encoding
     soup = BeautifulSoup(resp.text.replace("<br>", " ").replace("<BR>", " "), "html.parser")
 
@@ -135,7 +135,7 @@ def scrape_y_guardar(url, url_eu, directorio, fecha, titulo_es, titulo_eu, id):
     detalle_eus = soup.find("div", id="detalle_eus")
     if not detalle_eus:
         raise ValueError("No se encontró el div detalle_eus")
-    
+
     titulos = [titulo_es, titulo_eu]
     idtitulocast = None
 
@@ -168,7 +168,7 @@ def scrape_y_guardar(url, url_eu, directorio, fecha, titulo_es, titulo_eu, id):
             t_eu_norm = normalize_text(titulo_eu)
             for i, p in enumerate(parrafos):
                 p_norm = normalize_text(p.get_text())
-                if t_es_norm in p_norm or p_norm in t_es_norm or t_eu_norm in p_norm or p_norm in t_eu_norm: 
+                if t_es_norm in p_norm or p_norm in t_es_norm or t_eu_norm in p_norm or p_norm in t_eu_norm:
                     idx_titulo = i
                     break
                 else:
@@ -183,7 +183,7 @@ def scrape_y_guardar(url, url_eu, directorio, fecha, titulo_es, titulo_eu, id):
                 parrafos_eu = detalle_eus.find_all("p", class_="txtprincipal")
                 for i, p in enumerate(parrafos_eu):
                     p_norm = normalize_text(p.get_text())
-                    if t_es_norm in p_norm or p_norm in t_es_norm or t_eu_norm in p_norm or p_norm in t_eu_norm: 
+                    if t_es_norm in p_norm or p_norm in t_es_norm or t_eu_norm in p_norm or p_norm in t_eu_norm:
                         idx_titulo = i
                         break
                     else:
@@ -195,13 +195,13 @@ def scrape_y_guardar(url, url_eu, directorio, fecha, titulo_es, titulo_eu, id):
                             break
 
             idtitulocast = idx_titulo if idx == 0 else idtitulocast
-            if idx_titulo is None and idx == 1:   
+            if idx_titulo is None and idx == 1:
                 idx_titulo = idtitulocast
 
             if idx_titulo is None:
                 print(f"No se encontró el párrafo que contiene el título : {titulo_es.strip()}")
                 print(f"No se encontró el párrafo que contiene el título : {titulo_eu.strip()}")
-                #raise ValueError("No se encontró el párrafo que contiene el título")
+                # raise ValueError("No se encontró el párrafo que contiene el título")
 
             prev = parrafos[:idx_titulo]
             if len(prev) >= 3 and ("Diputación Foral de Álava" in prev[1].get_text() or "Arabako Foru Aldundia" in prev[1].get_text()):
@@ -222,7 +222,7 @@ def scrape_y_guardar(url, url_eu, directorio, fecha, titulo_es, titulo_eu, id):
             idx_titulo = 0
             contenido = "\n".join(
                 html.escape(p.get_text(strip=True))
-                for p in parrafos[idx_titulo + 1 :]
+                for p in parrafos[idx_titulo + 1:]
             )
 
         data = {
@@ -247,7 +247,7 @@ def scrape_y_guardar(url, url_eu, directorio, fecha, titulo_es, titulo_eu, id):
             # print(f"Registro añadido en {ruta_archivo}")
         except Exception as e:
             print(f"Error al escribir en el archivo: {e}")
-    
+
     return id_new
 
 
@@ -263,38 +263,38 @@ def procesar_urls(lista_urls):
         Lista de diccionarios con URL _C y ambos títulos
     """
     resultado_dict = {}
-    
+
     for url, titulo in lista_urls:
         try:
             # Extraer el parámetro File de la URL
             parsed_url = urlparse(url)
             query_params = parse_qs(parsed_url.query)
             file_param = query_params.get('File', [''])[0]
-            
+
             # Obtener la clave común (sin _C o _E)
             if '_C.xml' in file_param or '_E.xml' in file_param:
                 clave_comun = file_param.replace('_C.xml', '').replace('_E.xml', '')
-                
+
                 # Inicializar entrada si no existe
                 if clave_comun not in resultado_dict:
                     resultado_dict[clave_comun] = {
-                        'url_C': None, 
-                        'titulo_C': None, 
+                        'url_C': None,
+                        'titulo_C': None,
                         'titulo_E': None,
                         'clave_comun': clave_comun
                     }
-                
+
                 # Asignar según el tipo de URL
                 if '_C.xml' in file_param:
                     resultado_dict[clave_comun]['url_C'] = url
                     resultado_dict[clave_comun]['titulo_C'] = titulo
                 elif '_E.xml' in file_param:
                     resultado_dict[clave_comun]['titulo_E'] = titulo
-                    
+
         except Exception as e:
             print(f"Error procesando URL: {url} - {e}")
             continue
-    
+
     # Filtrar solo los que tienen URL _C y devolver como lista
     return [v for k, v in resultado_dict.items() if v['url_C']]
 
@@ -324,16 +324,12 @@ def procesar_fecha(fecha, directorio, id):
 
     # Comprobar si la página contiene el mensaje de boletín no disponible
     if "Laburpena  zenbakiko aldizkaria, astelehena, 0001.eko urtarrilak 1 egunekoa" in response.text or \
-       "Sumario del Boletin nº  del lunes, 1 de enero de 0001" in response.text:
+            "Sumario del Boletin nº  del lunes, 1 de enero de 0001" in response.text:
         print("Boletín no disponible (mensaje técnico).")
         return id
 
     # Extraer enlaces del HTML
     enlaces = extraer_enlaces(response.text, url)
-    # print(len(enlaces), "enlaces encontrados.")
-    # for enlace, titulo in enlaces[0:10]:
-    #     print(f"  - {enlace}: {titulo}")
-    # input()
 
     pares = zip(enlaces[::2], enlaces[1::2])
     lista_triplas = [(url_c, url_e, titulo_c, titulo_e) for (url_e, titulo_e), (url_c, titulo_c) in pares]
@@ -345,7 +341,7 @@ def procesar_fecha(fecha, directorio, id):
         else:
             print(f"Enlace no reconocido (ni _C ni _E): {enlace}")
             input()
-    return id   
+    return id
 
 
 def main(añoinicio, añofin, directorio):
@@ -353,7 +349,6 @@ def main(añoinicio, añofin, directorio):
 
     id = 0
 
-    #start_date = datetime(añoinicio, 1, 1)
     start_date = datetime(añoinicio, 1, 1)
     end_date = datetime(añofin, 12, 31)
 
@@ -362,18 +357,13 @@ def main(añoinicio, añofin, directorio):
 
 
 if __name__ == '__main__':
-
     # argument parser
     parser = argparse.ArgumentParser(description="Obtener actos administrativos del BOTHA")
     parser.add_argument("directory", type=str, help="Directorio donde se guardarán los datos")
     parser.add_argument("añoinicio", type=int, help="Año de inicio")
     parser.add_argument("añofin", type=int, help="Año de fin")
-    # idioma = eu o es , solo esas dos opciones
-    # parser.add_argument("idioma", choices=["eu", "es"], help="Idioma de los datos")
     args = parser.parse_args()
 
     añoinicio = args.añoinicio
     añofin = args.añofin
-    datos = main(añoinicio, añofin, args.directory)
-
-
+    main(añoinicio, añofin, args.directory)

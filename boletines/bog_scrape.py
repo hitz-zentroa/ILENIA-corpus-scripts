@@ -1,10 +1,12 @@
-import requests
-from bs4 import BeautifulSoup, NavigableString
-from datetime import datetime, timedelta
-import os
-import re
 import argparse
 import json
+import logging
+import os
+import re
+from datetime import datetime, timedelta
+
+import requests
+from bs4 import BeautifulSoup, NavigableString
 
 
 def daterange(start_date, end_date):
@@ -15,119 +17,6 @@ def daterange(start_date, end_date):
         current += timedelta(days=1)
 
 
-"""
-def extraer_enlaces(html):
-    
-    Dado el HTML de una página, extrae todos los nombres de archivo que coinciden
-    con el patrón: c########.htm (por ejemplo, c1411581.htm o c0714114.htm), junto con su título correspondiente.
-    
-    Devuelve una lista de tuplas (nombre_archivo, titulo).
-    
-    soup = BeautifulSoup(html, 'html.parser')
-    enlaces_con_titulo = []
-
-    # Buscar todos los elementos <li> que puedan contener los enlaces y los títulos
-    for li in soup.find_all('li'):
-        # Extraer el título (si está presente)
-        titulo_elemento = li.find(class_="titulo_anuncio")
-        if titulo_elemento:
-            titulo_texto = titulo_elemento.get_text(strip=True)
-        else:
-            # Si no hay <div class="titulo_anuncio">, buscar texto cerca del enlace
-            titulo_texto = ""
-            for element in li.contents:
-                if element.name == "a":  # Si encontramos un enlace, dejamos de buscar
-                    break
-                if isinstance(element, str):  # Si es texto, lo agregamos al título
-                    titulo_texto += element.strip() + " "
-
-        # Buscar enlaces específicos dentro del <li>
-        for a in li.find_all('a', href=True):
-            href = a['href']
-            nombre_archivo = os.path.basename(href)
-
-            # Verificar si el enlace coincide con el patrón "c#######.htm"
-            if re.match(r'^c\d+\.htm$', nombre_archivo, re.IGNORECASE):
-                # Guardar el enlace con su título correspondiente
-                enlaces_con_titulo.append((nombre_archivo, titulo_texto.strip()))
-            elif re.match(r'^e\d+\.htm$', nombre_archivo, re.IGNORECASE):
-                enlaces_con_titulo.append((nombre_archivo, titulo_texto))
-
-    return enlaces_con_titulo
-"""
-"""
-def extraer_enlaces(html):
-    
-    Dado el HTML de una página, extrae todos los enlaces HTML (aquellos cuyo href termina en .htm)
-    junto con el título correspondiente de cada anuncio.
-    
-    Se consideran dos estructuras:
-      1. El anuncio está contenido en un <li> dentro de un <ul class="anuncios"> y el título
-         se halla en un <div class="titulo_anuncio">.
-      2. El anuncio está en un <li> donde el título es el texto que aparece fuera de los enlaces.
-    
-    Devuelve una lista de tuplas: (nombre_archivo, título).
-    
-    from bs4 import NavigableString
-    import os, re
-    soup = BeautifulSoup(html, 'html.parser')
-    resultados = []
-
-    # Primero, buscar los <ul> con clase "anuncios"
-    ul_anuncios = soup.find_all('ul', class_="anuncios")
-    if ul_anuncios:
-        # Procesar cada anuncio (<li> directo dentro del <ul class="anuncios">)
-        for ul in ul_anuncios:
-            for li in ul.find_all('li', recursive=False):
-                # 1. Extraer título
-                titulo_div = li.find('div', class_="titulo_anuncio")
-                if titulo_div:
-                    titulo = titulo_div.get_text(strip=True)
-                else:
-                    # Si no hay div específico, extraemos el texto fuera de los enlaces.
-                    title_parts = []
-                    for elem in li.descendants:
-                        if isinstance(elem, NavigableString) and elem.parent.name != "a":
-                            texto = elem.strip()
-                            if texto:
-                                title_parts.append(texto)
-                    titulo = " ".join(title_parts)
-                
-                # 2. Buscar el enlace HTML: buscamos la primera <a> cuyo href termine en ".htm"
-                enlace_html = None
-                for a in li.find_all('a', href=True):
-                    href = a['href']
-                    if re.search(r'\.htm$', href, re.IGNORECASE):
-                        # Nos quedamos solo con el nombre del archivo
-                        enlace_html = os.path.basename(href)
-                        break
-
-                if enlace_html and titulo:
-                    resultados.append((enlace_html, titulo))
-    else:
-        # Fallback: si no se encuentran <ul class="anuncios">, procesar todos los <li> del documento
-        for li in soup.find_all('li'):
-            enlace_html = None
-            for a in li.find_all('a', href=True):
-                href = a['href']
-                if re.search(r'\.htm$', href, re.IGNORECASE):
-                    enlace_html = os.path.basename(href)
-                    break
-            if enlace_html:
-                titulo_div = li.find('div', class_="titulo_anuncio")
-                if titulo_div:
-                    titulo = titulo_div.get_text(strip=True)
-                else:
-                    title_parts = []
-                    for elem in li.descendants:
-                        if isinstance(elem, NavigableString) and elem.parent.name != "a":
-                            texto = elem.strip()
-                            if texto:
-                                title_parts.append(texto)
-                    titulo = " ".join(title_parts)
-                resultados.append((enlace_html, titulo))
-    return resultados
-    """
 def extraer_enlaces(html):
     """
     Dado el HTML de una página, extrae los anuncios con su enlace HTML (archivo .htm) y título.
@@ -167,7 +56,6 @@ def extraer_enlaces(html):
     
     Para cada anuncio se devuelve una tupla (nombre_archivo, título).
     """
-
 
     soup = BeautifulSoup(html, 'html.parser')
     resultados = []
@@ -259,22 +147,22 @@ def scrape_y_guardar(url, directorio, fecha, idioma, titulo):
         # Si ya está en el formato correcto o no se puede parsear, se usa tal cual
         try:
             fecha_obj = datetime.strptime(fecha, "%Y-%m-%d")
-        except ValueError:
-            raise ValueError("El formato de fecha debe ser DD/MM/YYYY o YYYY-MM-DD")
+        except ValueError as e:
+            raise ValueError("El formato de fecha debe ser DD/MM/YYYY o YYYY-MM-DD") from e
     fecha_formateada = fecha_obj.strftime("%Y-%m-%d")
     anio = fecha_obj.strftime("%Y")
-    
+
     # Obtención del HTML
     try:
         response = requests.get(url)
         response.raise_for_status()
         html = response.text
     except Exception as e:
-        print(f"Error al obtener la url: {e}")
+        logging.exception(f"Error al obtener la url: {e}")
         return
 
     soup = BeautifulSoup(html, 'html.parser')
-    
+
     # Inicializamos los campos
     organismo = ""
     departamento = ""
@@ -291,7 +179,7 @@ def scrape_y_guardar(url, directorio, fecha, idioma, titulo):
             # Si existe un segundo párrafo, se asume que es el departamento
             if len(parrafos_center) > 1:
                 departamento = parrafos_center[1].get_text(" ", strip=True)
-    
+
     # 2. Si no se encontraron en bloque <b>, se buscan patrones individuales
     if not organismo:
         # Buscamos organismo en <span class="norma_000">
@@ -303,7 +191,7 @@ def scrape_y_guardar(url, directorio, fecha, idioma, titulo):
             p_norma = soup.find('p', class_='00norma')
             if p_norma:
                 organismo = p_norma.get_text(" ", strip=True)
-    
+
     if not departamento:
         # Buscamos departamento en <p class="norma01">
         p_departamento = soup.find('p', class_='norma01')
@@ -323,12 +211,12 @@ def scrape_y_guardar(url, directorio, fecha, idioma, titulo):
     parrafos_norma = soup.find_all('p', class_=re.compile(r'\d+norma'))
     for p in parrafos_norma:
         contenidos.append(p.get_text(" ", strip=True))
-    
+
     # c) Contenido en <p align="JUSTIFY">
     parrafos_justify = soup.find_all('p', align="JUSTIFY")
     for p in parrafos_justify:
         contenidos.append(p.get_text(" ", strip=True))
-    
+
     # Unimos todo el contenido extraído en un solo string.
     contenido_texto = "\n".join(contenidos)
 
@@ -351,9 +239,9 @@ def scrape_y_guardar(url, directorio, fecha, idioma, titulo):
     try:
         with open(ruta_archivo, 'a', encoding='utf-8') as f:
             f.write(json.dumps(registro, ensure_ascii=False) + "\n")
-        #print(f"Registro añadido en {ruta_archivo}")
+        # logging.warning(f"Registro añadido en {ruta_archivo}")
     except Exception as e:
-        print(f"Error al escribir en el archivo: {e}")
+        logging.exception(f"Error al escribir en el archivo: {e}")
 
 
 def procesar_fecha(fecha, idioma, directorio, bolname):
@@ -364,41 +252,35 @@ def procesar_fecha(fecha, idioma, directorio, bolname):
     year = fecha.year
     month = fecha.month
     day = fecha.day
-    
+
     # Construir el segmento bc{AAMMDD} -> usando el año en dos dígitos
     aammdd = f"{year % 100:02d}{month:02d}{day:02d}"
     url = f"https://egoitza.gipuzkoa.eus/gao-bog/{idioma}/{bolname}/{year}/{month:02d}/{day:02d}/b{idioma[0]}{aammdd}.htm"
-    
-    print(f"\nProcesando {fecha.strftime('%Y-%m-%d')} -> {url}")
+
+    logging.warning(f"\nProcesando {fecha.strftime('%Y-%m-%d')} -> {url}")
     try:
         response = requests.get(url)
     except Exception as e:
-        print(f"Error al solicitar la URL: {e}")
+        logging.exception(f"Error al solicitar la URL: {e}")
         return None
 
     # Si la respuesta es 404, la página no existe
     if response.status_code == 404:
-        print("Página no encontrada (404).")
+        logging.error("Página no encontrada (404).")
         return None
 
     # Comprobar si la página contiene el mensaje de boletín no disponible
     if "Por motivos técnicos" in response.text:
-        print("Boletín no disponible (mensaje técnico).")
+        logging.warning("Boletín no disponible (mensaje técnico).")
         return None
 
     # Extraer enlaces del HTML
     enlaces = extraer_enlaces(response.text)
-    # print(len(enlaces), "enlaces encontrados.")
-    # for enlace, titulo in enlaces[0:10]:
-    #     print(f"  - {enlace}: {titulo}")
-    # input()
-
 
     # por cada elemennto de enlaces, llamar a la url y guardar en el fichero
     for enlace, titulo in enlaces:
-        url = f"https://egoitza.gipuzkoa.eus/gao-bog/{idioma}/{bolname}/{year}/{month:02d}/{day:02d}/{enlace}" 
+        url = f"https://egoitza.gipuzkoa.eus/gao-bog/{idioma}/{bolname}/{year}/{month:02d}/{day:02d}/{enlace}"
         scrape_y_guardar(url, directorio, fecha.strftime("%Y-%m-%d"), idioma, titulo)
-
 
 
 def main(añoinicio, añofin, idioma, directorio, bolname):
@@ -431,10 +313,7 @@ if __name__ == '__main__':
     else:
         idioma = "castell"
         bolname = "bog"
-    
 
     añoinicio = args.añoinicio
     añofin = args.añofin
-    datos = main(añoinicio, añofin, idioma, args.directory, bolname)
-
-
+    main(añoinicio, añofin, idioma, args.directory, bolname)

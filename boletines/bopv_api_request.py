@@ -1,25 +1,24 @@
-import requests
 import argparse
-import jsonlines
 import os
-from datetime import datetime
-import pytz
-import re
 import time
-from bs4 import BeautifulSoup, Tag
 from contextlib import suppress
+from datetime import datetime
 from typing import Iterable
-from pathlib import Path
+
+import jsonlines
+import pytz
+import requests
+from bs4 import BeautifulSoup, Tag
 
 
 def cambiar_a_zona_horaria_española(fecha_iso):
-        """Convierte una fecha en formato ISO 8601 a la zona horaria de España (Madrid) y devuelve solo la fecha en formato 'YYYY-MM-DD'."""
+    """Convierte una fecha en formato ISO 8601 a la zona horaria de España (Madrid) y devuelve solo la fecha en formato 'YYYY-MM-DD'."""
 
-        fecha_obj = datetime.strptime(fecha_iso, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=pytz.UTC)
-        zona_madrid = pytz.timezone("Europe/Madrid")
-        fecha_madrid = fecha_obj.astimezone(zona_madrid)
-        publicationDate = fecha_madrid.strftime("%Y-%m-%d")
-        return publicationDate
+    fecha_obj = datetime.strptime(fecha_iso, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=pytz.UTC)
+    zona_madrid = pytz.timezone("Europe/Madrid")
+    fecha_madrid = fecha_obj.astimezone(zona_madrid)
+    publicationDate = fecha_madrid.strftime("%Y-%m-%d")
+    return publicationDate
 
 
 def collect_text(soup_iter: Iterable[Tag], extract: bool = False, sep: str = '\n') -> str:
@@ -42,12 +41,8 @@ def collect_text(soup_iter: Iterable[Tag], extract: bool = False, sep: str = '\n
 
 
 def limpiar_texto(texto):
-
     soup = BeautifulSoup(texto, 'html.parser')
     text = soup.get_text(separator="\n", strip=True)
-    #root_div = soup.find("div", class_="x42tLegalTextOriginal")
-    #text = collect_text([root_div])
-
     return text
 
 
@@ -64,19 +59,12 @@ def obtener_bopv(base_url, year, idioma, page=1):
     wait_time = 5  # Tiempo de espera entre intentos
 
     for intento in range(max_retries):
-    
+
         try:
             response = requests.get(url, headers=headers, timeout=timeout)
             response.raise_for_status()  # Lanza una excepción si el código de estado es un error (4xx, 5xx)
-            #print(f"Obteniendo datos de {url}")
-            #input("Pulsa una tecla para continuar...")
-
             return response.json()  # respuesta en formato JSON
-        
-            break
-
         except requests.exceptions.RequestException as e:
-            #print(f"Error en la solicitud: {e}")
             print(f"Error en el intento {intento + 1}: {e}")
             if intento < max_retries - 1:
                 print(f"Reintentando en {wait_time} segundos...")
@@ -84,11 +72,11 @@ def obtener_bopv(base_url, year, idioma, page=1):
             else:
                 print("Se agotaron los intentos, no se pudo obtener respuesta.")
                 return None
-    
 
-def guardar_datos(añoinicio, añofin, idioma, directory):
+
+def main(añoinicio, añofin, idioma, directory):
     """Guardar actos administrativos del BOPV en ficheros JSONL por cada año"""
-    
+
     # guardar datos en un fichero JSONL por cada año
     # cada linea del fichero es un acto administrativo
     for year in range(añoinicio, añofin + 1):
@@ -111,7 +99,7 @@ def guardar_datos(añoinicio, añofin, idioma, directory):
                         numBulletin = item.get("numBulletin", "")
                         numOrder = item.get("numOrder", "")
                         numDisposal = item.get("numDisposal", "")
-                        publicationDateISO  = item.get("publishDate", "2000-01-01T23:00:00Z")
+                        publicationDateISO = item.get("publishDate", "2000-01-01T23:00:00Z")
                         publicationDate = cambiar_a_zona_horaria_española(publicationDateISO)
                         disposalDateISO = item.get("disposalDate", "2000-01-01T23:00:00Z")
                         disposalDate = cambiar_a_zona_horaria_española(disposalDateISO)
@@ -143,9 +131,7 @@ def guardar_datos(añoinicio, añofin, idioma, directory):
                             "titulo_texto": titulo_texto,
                             "contenido_texto": contenido_texto,
                             "url": url
-                        })              
-            #else:
-            #    print(f"No se han podido obtener los datos del año {year}")
+                        })
 
 
 if __name__ == "__main__":
@@ -162,6 +148,4 @@ if __name__ == "__main__":
 
     añoinicio = args.añoinicio
     añofin = args.añofin
-    datos = guardar_datos(añoinicio, añofin, args.idioma, args.directory)
-
-
+    main(añoinicio, añofin, args.idioma, args.directory)
