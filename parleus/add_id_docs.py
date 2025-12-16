@@ -1,12 +1,12 @@
 import argparse
 import json
 
-# Función para procesar múltiples archivos
+
 def process_multiple_json(lang: str, root_path: str):
     current_id = 1
 
     output_paths = []
-    
+
     for i in range(10, 13):
         output_path = f"{root_path}/legislatura_{i}/parlamentu_{i}_{lang}_final.jsonl"
         output_paths.append(output_path)
