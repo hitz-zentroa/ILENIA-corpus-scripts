@@ -1,0 +1,33 @@
+documents:
+#   dolma bug!! paths must have a wildcard, otherwise it creates an extra directory and then the mixer cannot load the attributes!
+  - /corpus/documents/berria/jsonl/berria-*.03_par-dedup.jsonl.gz
+  - /corpus/documents/wikipedia/20250920/jsonl/wikipedia.*.03_par-dedup.jsonl.gz
+  - /corpus/documents/euscrawl/v1.202509/jsonl/euscrawl-v1-202509.*.03_par-dedup.jsonl.gz
+  - /corpus/documents/euscrawl/v1.202311/jsonl/euscrawl-v1-2023.*.03_par-dedup.jsonl.gz
+  - /corpus/documents/euscrawl/v1/jsonl/euscrawl-v1.*.03_par-dedup.jsonl.gz
+  - /corpus/documents/egunkaria/1999-2006/jsonl/2001-*.03_par-dedup.jsonl.gz
+  - /corpus/documents/zelaihandi/jsonl/zelaiHandi.*.03_par-dedup.jsonl.gz
+  - /corpus/documents/bog/20250918/jsonl/bog_euskera_*.03_par-dedup.jsonl.gz
+  - /corpus/documents/bopv/20250918/jsonl/bopv_eu_*.03_par-dedup.jsonl.gz
+  - /corpus/documents/botha/20250918/jsonl/botha_eu_*.03_par-dedup.jsonl.gz
+  - /corpus/documents/parleus/20250919/jsonl/parlamentu_db_final_*.03_par-dedup.jsonl.gz
+  - /corpus/documents/aldizkariak/jsonl/*.03_par-dedup.jsonl.gz
+  - /corpus/documents/OpenSubtitles/jsonl/*.03_par-dedup.jsonl.gz
+  - /corpus/documents/euscrawl/v2/jsonl/*.03_par-dedup.jsonl.gz
+  - /corpus/documents/booktegi/jsonl/booktegi-*.03_par-dedup.jsonl.gz
+  - /corpus/documents/cultura-x/jsonl/*.03_par-dedup.jsonl.gz
+  - /corpus/documents/hplt/v2/jsonl/*.03_par-dedup.jsonl.gz
+  - /corpus/documents/finepdfs/20250919/jsonl/*.03_par-dedup.jsonl.gz
+  - /corpus/documents/fineweb2/20250919/jsonl/*.03_par-dedup.jsonl.gz
+  - /corpus/documents/colossal-oscar/1.0/jsonl/05-06-23_*.03_par-dedup.jsonl.gz
+  - /corpus/documents/colossal-oscar/1.0/jsonl/06-07-22_*.03_par-dedup.jsonl.gz
+  - /corpus/documents/cc-bsc/jsonl/colossal_oscar_2023-14_eu.part-*-of-0001.shuffled.03_par-dedup.jsonl.gz
+  - /corpus/documents/hplt/v1/jsonl/*.03_par-dedup.jsonl.gz
+work_dir:
+  input: /corpus/tmp/input
+  output: /corpus/tmp/output
+taggers:
+  - c4_v2
+  - gopher_v1
+  - cld2_eu_doc_v2
+processes: 8

@@ -1,0 +1,46 @@
+streams:
+    - name: dedup_url
+      documents:
+        - /corpus/documents/berria/jsonl/berria-202509.jsonl.gz
+        - /corpus/documents/euscrawl/v1.202509/jsonl/euscrawl-v1-202509.full.jsonl.gz
+        - /corpus/documents/euscrawl/v1.202311/jsonl/euscrawl-v1-2023.full.jsonl.gz
+        - /corpus/documents/euscrawl/v1/jsonl/euscrawl-v1.full.jsonl.gz
+        - /corpus/documents/zelaihandi/jsonl/zelaiHandi.trimmed.jsonl.gz
+        - /corpus/documents/wikipedia/20250920/jsonl/wikipedia.eu.jsonl.gz
+        - /corpus/documents/bog/20250918/jsonl/bog_euskera_18_09.jsonl.gz
+        - /corpus/documents/bopv/20250918/jsonl/bopv_eu_18_09.jsonl.gz
+        - /corpus/documents/botha/20250918/jsonl/botha_eu_18_09.jsonl.gz
+        - /corpus/documents/parleus/20250919/jsonl/parlamentu_db_final_eu.jsonl.gz
+        - /corpus/documents/euscrawl/v2/jsonl/train.jsonl.gz
+        - /corpus/documents/euscrawl/v2/jsonl/valid.jsonl.gz
+        - /corpus/documents/euscrawl/v2/jsonl/test.jsonl.gz
+        - /corpus/documents/cultura-x/jsonl/eu_part_00000.jsonl.gz
+        - /corpus/documents/cultura-x/jsonl/eu_part_00001.jsonl.gz
+        - /corpus/documents/hplt/v2/jsonl/1.jsonl.gz
+        - /corpus/documents/hplt/v2/jsonl/2.jsonl.gz
+        - /corpus/documents/hplt/v2/jsonl/3.jsonl.gz
+        - /corpus/documents/hplt/v2/jsonl/4.jsonl.gz
+        - /corpus/documents/hplt/v2/jsonl/5.jsonl.gz
+        - /corpus/documents/finepdfs/20250919/jsonl/000_00000.jsonl.gz
+        - /corpus/documents/finepdfs/20250919/jsonl/000_00001.jsonl.gz
+        - /corpus/documents/finepdfs/20250919/jsonl/000_00000_test.jsonl.gz
+        - /corpus/documents/fineweb2/20250919/jsonl/001.jsonl.gz
+        - /corpus/documents/fineweb2/20250919/jsonl/002.jsonl.gz
+        - /corpus/documents/fineweb2/20250919/jsonl/003.jsonl.gz
+        - /corpus/documents/fineweb2/20250919/jsonl/004.jsonl.gz
+        - /corpus/documents/fineweb2/20250919/jsonl/test.jsonl.gz
+        - /corpus/documents/colossal-oscar/1.0/jsonl/06-07-22_eu_meta.jsonl.gz
+        - /corpus/documents/colossal-oscar/1.0/jsonl/05-06-23_eu_meta.jsonl.gz
+        - /corpus/documents/hplt/v1/jsonl/1.jsonl.gz
+        - /corpus/documents/hplt/v1/jsonl/2.jsonl.gz
+        - /corpus/documents/hplt/v1/jsonl/3.jsonl.gz
+        - /corpus/documents/hplt/v1/jsonl/4.jsonl.gz
+      output:
+        path: /corpus/result
+        max_size_in_bytes: 1_000_000_000
+      attributes:
+        - bff_duplicate_url
+      filter:
+        exclude:
+          - "$@.attributes[?(@.bff_duplicate_url)]"
+processes: 12

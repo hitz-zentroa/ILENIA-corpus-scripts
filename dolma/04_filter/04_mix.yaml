@@ -1,0 +1,61 @@
+streams:
+  - name: clean
+    documents:
+    - /corpus/documents/berria/jsonl/berria-202509.03_par-dedup.jsonl.gz
+    - /corpus/documents/wikipedia/20250920/jsonl/wikipedia.eu.03_par-dedup.jsonl.gz
+    - /corpus/documents/euscrawl/v1.202509/jsonl/euscrawl-v1-202509.full.03_par-dedup.jsonl.gz
+    - /corpus/documents/euscrawl/v1.202311/jsonl/euscrawl-v1-2023.full.03_par-dedup.jsonl.gz
+    - /corpus/documents/euscrawl/v1/jsonl/euscrawl-v1.full.03_par-dedup.jsonl.gz
+    - /corpus/documents/egunkaria/1999-2006/jsonl/2001-2006.03_par-dedup.jsonl.gz
+    - /corpus/documents/zelaihandi/jsonl/zelaiHandi.trimmed.03_par-dedup.jsonl.gz
+    - /corpus/documents/bog/20250918/jsonl/bog_euskera_18_09.03_par-dedup.jsonl.gz
+    - /corpus/documents/bopv/20250918/jsonl/bopv_eu_18_09.03_par-dedup.jsonl.gz
+    - /corpus/documents/botha/20250918/jsonl/botha_eu_18_09.03_par-dedup.jsonl.gz
+    - /corpus/documents/parleus/20250919/jsonl/parlamentu_db_final_eu.03_par-dedup.jsonl.gz
+    - /corpus/documents/aldizkariak/jsonl/full.03_par-dedup.jsonl.gz
+    - /corpus/documents/OpenSubtitles/jsonl/eu.03_par-dedup.jsonl.gz
+    - /corpus/documents/euscrawl/v2/jsonl/full.03_par-dedup.jsonl.gz
+    - /corpus/documents/booktegi/jsonl/booktegi-bsc.03_par-dedup.jsonl.gz
+    - /corpus/documents/cultura-x/jsonl/eu.03_par-dedup.jsonl.gz
+    - /corpus/documents/hplt/v2/jsonl/full.03_par-dedup.jsonl.gz
+    - /corpus/documents/finepdfs/20250919/jsonl/full.03_par-dedup.jsonl.gz
+    - /corpus/documents/fineweb2/20250919/jsonl/full.03_par-dedup.jsonl.gz
+    - /corpus/documents/colossal-oscar/1.0/jsonl/05-06-23_eu_meta.03_par-dedup.jsonl.gz
+    - /corpus/documents/colossal-oscar/1.0/jsonl/06-07-22_eu_meta.03_par-dedup.jsonl.gz
+    - /corpus/documents/cc-bsc/jsonl/colossal_oscar_2023-14_eu.part-0001-of-0001.shuffled.03_par-dedup.jsonl.gz
+    - /corpus/documents/hplt/v1/jsonl/full.03_par-dedup.jsonl.gz
+    output:
+      path: /corpus/result
+      max_size_in_bytes: 1_000_000_000
+      discard_fields:
+        - attributes
+    attributes:
+      - c4_v2
+      - gopher_v1
+      - cld2_eu_doc_v2
+    filter:
+      exclude:
+        # Some C4 rules
+        # exclude documents that contain lorem ipsum
+        - $.attributes[?(@.c4_v2__c4_v2__has_lorem_ipsum && @.c4_v2__c4_v2__has_lorem_ipsum[0] && @.c4_v2__c4_v2__has_lorem_ipsum[0][2] > 0.5)]
+        # Some GOPHER rules (some thresholds adapted to our datasets!)
+        # exclude documents whose median word length is smaller than 3 or bigger than 12 (original says 10, but Basque has longer words than English)
+        - $.attributes[?(@.gopher_v1__gopher_v1__median_word_length && @.gopher_v1__gopher_v1__median_word_length[0] && @.gopher_v1__gopher_v1__median_word_length[0][2] < 3)]
+        - $.attributes[?(@.gopher_v1__gopher_v1__median_word_length && @.gopher_v1__gopher_v1__median_word_length[0] && @.gopher_v1__gopher_v1__median_word_length[0][2] > 12)]
+        # exclude documents whose symbol to word ratio is bigger than 0.1
+        - $.attributes[?(@.gopher_v1__gopher_v1__symbol_to_word_ratio && @.gopher_v1__gopher_v1__symbol_to_word_ratio[0] && @.gopher_v1__gopher_v1__symbol_to_word_ratio[0][2] > 0.1)]
+        # exclude documents with fewer than 80% of token with alphabetic characters
+        - $.attributes[?(@.gopher_v1__gopher_v1__fraction_of_words_with_alpha_character && @.gopher_v1__gopher_v1__fraction_of_words_with_alpha_character[0] && @.gopher_v1__gopher_v1__fraction_of_words_with_alpha_character[0][2] < 0.8)]
+        # exclude documents that have too many lines starting with bullet points
+        - $.attributes[?(@.gopher_v1__gopher_v1__fraction_of_lines_starting_with_bullet_point && @.gopher_v1__gopher_v1__fraction_of_lines_starting_with_bullet_point[0] && @.gopher_v1__gopher_v1__fraction_of_lines_starting_with_bullet_point[0][2] > 0.9)]
+        # exclude documents that have too many lines ending with ellipsis
+        - $.attributes[?(@.gopher_v1__gopher_v1__fraction_of_lines_ending_with_ellipsis && @.gopher_v1__gopher_v1__fraction_of_lines_ending_with_ellipsis[0] && @.gopher_v1__gopher_v1__fraction_of_lines_ending_with_ellipsis[0][2] > 0.3)]
+        # OTHER RULES
+        # exclude short documents
+        - $.attributes[?(@.gopher_v1__gopher_v1__word_count && @.gopher_v1__gopher_v1__word_count[0] && @.gopher_v1__gopher_v1__word_count[0][2] < 4)]
+        # exclude documents that are not in Basque
+        - $.attributes[?(@.cld2_eu_doc_v2__cld2_eu_doc_v2__eu && @.cld2_eu_doc_v2__cld2_eu_doc_v2__eu[0] && @.cld2_eu_doc_v2__cld2_eu_doc_v2__eu[0][2] < 0.5)]
+work_dir:
+  input: /corpus/tmp/input
+  output: /corpus/tmp/output
+processes: 8

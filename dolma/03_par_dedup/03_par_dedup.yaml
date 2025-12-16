@@ -1,0 +1,37 @@
+documents: 
+    - /corpus/documents/berria/jsonl/berria-202509.02_text-dedup.jsonl.gz
+    - /corpus/documents/euscrawl/v1.202509/jsonl/euscrawl-v1-202509.full.02_text-dedup.jsonl.gz
+    - /corpus/documents/euscrawl/v1.202311/jsonl/euscrawl-v1-2023.full.02_text-dedup.jsonl.gz
+    - /corpus/documents/euscrawl/v1/jsonl/euscrawl-v1.full.02_text-dedup.jsonl.gz
+    - /corpus/documents/euscrawl/v2/jsonl/full.02_text-dedup.jsonl.gz
+    - /corpus/documents/cultura-x/jsonl/eu.02_text-dedup.jsonl.gz
+    - /corpus/documents/hplt/v2/jsonl/full.02_text-dedup.jsonl.gz
+    - /corpus/documents/fineweb2/20250919/jsonl/full.02_text-dedup.jsonl.gz
+    - /corpus/documents/colossal-oscar/1.0/jsonl/05-06-23_eu_meta.02_text-dedup.jsonl.gz
+    - /corpus/documents/colossal-oscar/1.0/jsonl/06-07-22_eu_meta.02_text-dedup.jsonl.gz
+    - /corpus/documents/cc-bsc/jsonl/colossal_oscar_2023-14_eu.part-0001-of-0001.shuffled.02_text-dedup.jsonl.gz
+    - /corpus/documents/hplt/v1/jsonl/full.02_text-dedup.jsonl.gz
+    - /corpus/documents/wikipedia/20250920/jsonl/wikipedia.eu.02_text-dedup.jsonl.gz
+    - /corpus/documents/zelaihandi/jsonl/zelaiHandi.trimmed.02_text-dedup.jsonl.gz
+    - /corpus/documents/bog/20250918/jsonl/bog_euskera_18_09.02_text-dedup.jsonl.gz
+    - /corpus/documents/bopv/20250918/jsonl/bopv_eu_18_09.02_text-dedup.jsonl.gz
+    - /corpus/documents/botha/20250918/jsonl/botha_eu_18_09.02_text-dedup.jsonl.gz
+    - /corpus/documents/parleus/20250919/jsonl/parlamentu_db_final_eu.jsonl.gz
+    - /corpus/documents/aldizkariak/jsonl/full.02_text-dedup.jsonl.gz
+    - /corpus/documents/finepdfs/20250919/jsonl/full.02_text-dedup.jsonl.gz
+    - /corpus/documents/egunkaria/1999-2006/jsonl/2001-2006.02_text-dedup.jsonl.gz
+    - /corpus/documents/OpenSubtitles/jsonl/eu.02_text-dedup.jsonl.gz
+    - /corpus/documents/booktegi/jsonl/booktegi-bsc.02_text-dedup.jsonl.gz
+work_dir:
+  input: /corpus/tmp/input
+  output: /corpus/tmp/output
+dedupe: 
+  name: bff_duplicate_par
+  paragraphs:
+    attribute_name: bff_duplicate_par
+bloom_filter:
+  file: /corpus/bff_duplicate_par_crawl.bin
+  read_only: false
+  estimated_doc_count: 2_000_000_000
+  desired_false_positive_rate: 0.0001
+processes: 1
