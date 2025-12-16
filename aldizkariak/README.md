@@ -20,13 +20,15 @@ This script **downloads PDFs** from multiple Basque journals. For each journal, 
 - **Uztaro**: [https://aldizkariak.ueu.eus/index.php/uztaro](https://aldizkariak.ueu.eus/index.php/uztaro)  
 - **Osagaiz**: [https://aldizkariak.ueu.eus/index.php/osagaiz](https://aldizkariak.ueu.eus/index.php/osagaiz)  
 
-### Methods
+### Usage
 
-- `main()`: Downloads Ekaia, Gogoa, Tantak  
-- `main_ekonomiaz()`: Downloads Ekonomiaz  
-- `main_kondaira()`: Downloads Kondaira  
-- `main_uztaro()`: Downloads Uztaro  
-- `main_osagaiz()`: Downloads Osagaiz  
+```
+python get_pdfs.py {default,osagaiz,uztaro,kondaira,ekonomiaz} url corpus
+
+positional arguments:
+  url -- root URL for the journal to be downloaded
+  corpus -- name of the corpus, used to compute the output path
+```
 
 > Output: A folder for each journal, containing subfolders for each issue, which store the PDFs.
 
