@@ -17,12 +17,11 @@ python pipeline.py --base-dir /path/to/berria
 """
 
 import argparse
-from pathlib import Path
 import datetime
-import time
 import sys
+import time
+from pathlib import Path
 
-# Import your existing modules
 import berria_downloader
 import ixaml_parser
 
@@ -46,13 +45,13 @@ def run_pipeline(base_dir: Path, download=True, parse=True):
         if last_date is None:
             print("No XML files found to parse. Exiting.")
             return
-        
 
         # Output filename: berria_DD_MM_YYYY.jsonl
         formatted_date = last_date.strftime("%d_%m_%Y")
         output_filename = f"berria_{formatted_date}.jsonl"
         ixaml_parser.parse_folders_to_jsonl(year_folders, output_filename)
         print(f"Parsing completed. Output file: {output_filename}")
+
 
 def main():
     parser = argparse.ArgumentParser(description="Berria XML Downloader and Parser Pipeline")
@@ -67,10 +66,11 @@ def main():
     if args.download_only and args.parse_only:
         print("Cannot use --download-only and --parse-only together.")
         sys.exit(1)
-    
+
     download, parse = not args.parse_only, not args.download_only
 
     run_pipeline(base_dir, download=download, parse=parse)
+
 
 if __name__ == "__main__":
     main()

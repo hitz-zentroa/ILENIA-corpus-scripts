@@ -1,7 +1,8 @@
 import datetime
-import requests
 from pathlib import Path
-import time
+
+import requests
+
 
 def get_last_date_from_folder(folder: Path, year: int) -> datetime.date:
     pattern = f"berria_{year}-*.xml"
@@ -13,6 +14,7 @@ def get_last_date_from_folder(folder: Path, year: int) -> datetime.date:
     last_file = files[-1].name  # e.g. 'berria_2025-03-16.xml'
     date_str = last_file[len("berria_"):-len(".xml")]  # '2025-03-16'
     return datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+
 
 def get_start_and_end_dates(base_dir: Path):
     # Find the start and end dates
@@ -28,15 +30,16 @@ def get_start_and_end_dates(base_dir: Path):
             last_date_in_folder = get_last_date_from_folder(folder, year)
             if last_date is None or last_date_in_folder > last_date:
                 last_date = last_date_in_folder
-    
+
     if last_date is None:
-        start_date = datetime.date(2024, 1, 1) # no files at all, start from 01/01/2024
+        start_date = datetime.date(2024, 1, 1)  # no files at all, start from 01/01/2024
         print(f"Fetching from {start_date} through {end_date}...")
     else:
         start_date = last_date + datetime.timedelta(days=1)
         print(f"Resuming from {start_date} through {end_date}...")
-    
+
     return start_date, end_date
+
 
 def download_for_date(d: datetime.date, base_url: str, base_dir: Path):
     year_str = d.strftime("%Y")

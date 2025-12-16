@@ -1,9 +1,9 @@
-import xml.etree.ElementTree as ET
-import json
-import html
-import re
-import os
 import datetime
+import html
+import json
+import os
+import re
+import xml.etree.ElementTree as ET
 
 
 def find_year_folders_and_last_date(base_dir='.'):
@@ -83,6 +83,7 @@ def clean_text(text):
 _INVALID_XML_CHARS = re.compile(
     r'[\x00-\x08\x0B\x0C\x0E-\x1F]'
 )
+
 
 def parse_folders_to_jsonl(folder_paths, jsonl_file):
     with open(jsonl_file, 'w', encoding='utf-8') as outfile:

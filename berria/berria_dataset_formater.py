@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+
 def transform_record(rec: dict) -> dict:
     """
     Transform one record:
@@ -8,33 +9,22 @@ def transform_record(rec: dict) -> dict:
     - Build 'text' from titularra, azpititularra, egilea, fetxa, testua
     - Append the rest of the fields afterwards
     """
-    # Build text
     parts = []
-
-    # titularra (title)
     if rec.get("titularra"):
         parts.append(rec["titularra"])
-
-    # azpititularra (subtitle)
     if rec.get("azpititularra"):
         parts.append(rec["azpititularra"])
-
-    # egilea + fetxa (author + date) or just date
     if rec.get("egilea") and rec.get("fetxa"):
         parts.append(f"Egilea: {rec['egilea']} / Data: {rec['fetxa']}")
     elif rec.get("fetxa"):
         parts.append("Data: " + rec["fetxa"])
-
-    # testua (main text)
     if rec.get("testua"):
         parts.append(rec["testua"])
 
     text = "\n\n".join(parts)
 
-    # Build ordered record
     out = {"url": rec.get("url", ""), "text": text}
 
-    # Add the rest of the fields, preserving original order but skipping url
     for k, v in rec.items():
         if k in ("url",):
             continue
