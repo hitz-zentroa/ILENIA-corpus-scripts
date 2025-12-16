@@ -1,65 +1,41 @@
+import argparse
+import logging
 from collections import defaultdict
 import os
 import json
-from marker.converters.pdf import PdfConverter
-from marker.models import create_model_dict
-from marker.output import text_from_rendered
+
 from tqdm import tqdm
 
-
-def convert_pdf_to_text(filepath: str) -> str:
-    """Convierte un PDF en texto usando Marker."""
-    converter = PdfConverter(
-        artifact_dict=create_model_dict(),
-    )
-    rendered = converter(filepath)
-    text, _, _ = text_from_rendered(rendered)
-    return text
+from util import convert_pdf_to_text, collect_pdfs
 
 
-def collect_pdfs(folder_path: str):
-    """Recorre recursivamente la carpeta y devuelve todos los PDFs encontrados."""
-    pdf_files = []
-    for root, _, files in os.walk(folder_path):
-        for file in files:
-            if file.lower().endswith(".pdf"):
-                pdf_files.append(os.path.join(root, file))
-    return pdf_files
+def main(input_folder: str, output_file: str, corpus_name: str, domain: str):
 
-
-def main(folder_path: str, corpus: str, domain: str, output_file: str):
-    pdf_files = collect_pdfs(folder_path)
-
-    # contador de ids repetidos
+    pdf_files = collect_pdfs(input_folder)
     id_counter = defaultdict(int)
 
-    print(f"Found {len(pdf_files)} PDF files in {folder_path}.")
+    logging.warning(f"Found {len(pdf_files)} PDF files in {input_folder}.")
 
     with open(output_file, "w", encoding="utf-8") as out:
-        for filepath in tqdm(pdf_files, desc="Converting PDFs"): # limitar a 5 para pruebas
+        for filepath in tqdm(pdf_files, desc="Converting PDFs"):
 
             try:
                 text = convert_pdf_to_text(filepath)
             except Exception as e:
-                print(f"Error converting {filepath}: {e}")
+                logging.exception(f"Error converting {filepath}: {e}")
                 continue
 
-            # extraer datos del path
             parts = filepath.split(os.sep)
             title = os.path.basename(filepath).replace(".pdf", "")
             year = parts[-2].split("_")[-2] if len(parts[-2].split("_")[-2]) == 4 else "unknown"
             parent_folder = parts[-2] if len(parts) >= 2 else ""
-            #_id = f"{corpus}_{parent_folder}"
 
-            # id base (sin número aún)
-            base_id = f"{corpus}_{parent_folder}"
+            base_id = f"{corpus_name}_{parent_folder}"
 
-            # incrementar contador y usarlo como sufijo desde 1
             id_counter[base_id] += 1
             count = id_counter[base_id]
             _id = f"{base_id}{count}"
 
-            # crear json
             record = {
                 "id": _id,
                 "title": title,
@@ -73,10 +49,13 @@ def main(folder_path: str, corpus: str, domain: str, output_file: str):
 
 
 if __name__ == "__main__":
-    folder_path = "aldizkariak/ekaia"
-    corpus = "ekaia"
-    domain = "zientzia eta teknologia"
-    output_file = f"{corpus}.jsonl"
 
-    main(folder_path, corpus, domain, output_file)
-    print(f"JSONL creado en {output_file}")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--input", type=str, required=True, help="Path to the folder containing PDF files")
+    parser.add_argument("-o", "--output", type=str, required=False, help="Output JSONL file (default: <corpus>.jsonl)")
+    parser.add_argument("--corpus", type=str, required=True, help="Corpus name (used for IDs and default output filename)")
+    parser.add_argument("--domain", type=str, required=True, help="Domain label for the documents")
+
+    args = parser.parse_args()
+
+    main(args.input, args.output or f"{args.corpus}.jsonl", args.corpus, args.domain)

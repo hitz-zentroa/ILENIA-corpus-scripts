@@ -1,47 +1,27 @@
-from collections import defaultdict
+import argparse
+import logging
 import os
 import json
-from marker.converters.pdf import PdfConverter
-from marker.models import create_model_dict
-from marker.output import text_from_rendered
+
 from tqdm import tqdm
 
+from util import convert_pdf_to_text, collect_pdfs
 
-def convert_pdf_to_text(filepath: str) -> str:
-    """Convierte un PDF en texto usando Marker."""
-    converter = PdfConverter(
-        artifact_dict=create_model_dict(),
-    )
-    rendered = converter(filepath)
-    text, _, _ = text_from_rendered(rendered)
-    return text
-
-
-def collect_pdfs(folder_path: str):
-    """Recorre recursivamente la carpeta y devuelve todos los PDFs encontrados."""
-    pdf_files = []
-    for root, _, files in os.walk(folder_path):
-        for file in files:
-            if file.lower().endswith(".pdf"):
-                pdf_files.append(os.path.join(root, file))
-    return pdf_files
+edition2year = {
+    'i': 2015,
+    'ii': 2017,
+    'iii': 2019,
+    'iv': 2021,
+    'v': 2023,
+    'vi': 2025
+}
 
 
-def main(folder_path: str, corpus: str, domain: str, output_file: str):
-    pdf_files = collect_pdfs(folder_path)
+def main(input_folder: str, output_file: str, corpus: str, domain: str):
 
-    # contador de ids repetidos
+    pdf_files = collect_pdfs(input_folder)
 
-    print(f"Found {len(pdf_files)} PDF files in {folder_path}.")
-
-    edition2year = {
-        'i': 2015,
-        'ii': 2017,
-        'iii': 2019,
-        'iv': 2021,
-        'v': 2023,
-        'vi': 2025
-    }
+    logging.warning(f"Found {len(pdf_files)} PDF files in {input_folder}.")
 
     with open(output_file, "w", encoding="utf-8") as out:
         for filepath in tqdm(pdf_files, desc="Converting PDFs"):
@@ -49,26 +29,21 @@ def main(folder_path: str, corpus: str, domain: str, output_file: str):
             try:
                 text = convert_pdf_to_text(filepath)
             except Exception as e:
-                print(f"Error converting {filepath}: {e}")
+                logging.exception(f"Error converting {filepath}: {e}")
                 continue
 
-            # extraer datos del path
             parts = filepath.split(os.sep)
             title = os.path.basename(filepath).replace(".pdf", "")
-            #year = parts[-2].split("_")[-2] if len(parts[-2].split("_")[-2]) == 4 else "unknown"
             parent_folder = parts[-2] if len(parts) >= 2 else ""
-            ikergazte_parts = parent_folder.split("-")
-            edition = ikergazte_parts[0]
+            parts = parent_folder.split("-")
+            edition = parts[0]
             pdf_id = title.split("-")[0]
             title = "".join(title.split("-")[1:])
-            domain = "-".join(ikergazte_parts[8:]) if len(ikergazte_parts) > 8 else domain
 
             _id = f"{corpus}_{edition}_{domain}_{pdf_id}"
 
-            domain = " ".join(ikergazte_parts[8:]) if len(ikergazte_parts) > 8 else domain
+            domain = " ".join(parts[8:]) if len(parts) > 8 else domain
 
-            
-            # crear json
             record = {
                 "id": _id,
                 "title": title,
@@ -82,10 +57,13 @@ def main(folder_path: str, corpus: str, domain: str, output_file: str):
 
 
 if __name__ == "__main__":
-    folder_path = "aldizkariak/ikergazte"
-    corpus = "ikergazte"
-    domain = "ikergazte"
-    output_file = f"{corpus}.jsonl"
 
-    main(folder_path, corpus, domain, output_file)
-    print(f"JSONL creado en {output_file}")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--input", type=str, required=True, help="Path to the folder containing PDF files")
+    parser.add_argument("-o", "--output", type=str, required=False, help="Output JSONL file (default: <corpus>.jsonl)")
+    parser.add_argument("--corpus", type=str, default="ikergazte", help="Corpus name (used for IDs and default output filename)")
+    parser.add_argument("--domain", type=str, required=True, help="Domain label for the documents")
+
+    args = parser.parse_args()
+
+    main(args.input, args.output or f"{args.corpus}.jsonl", args.corpus, args.domain)
