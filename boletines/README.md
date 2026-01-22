@@ -1,6 +1,7 @@
 ## Code to download data from Official Gazettes of Basque Country
 
-This folder contains 3 scripts to download articles from the Official Gazettes of Basque Country, Gipuzkoa and Araba:
+This folder contains 3 scripts to download articles from the Official Gazettes of Basque Country, Gipuzkoa and Araba.
+The *bob* folder bontains scripts to download articles from the Official Gazette of Bizkaia.
 
  - *bopv_api_request.py*
 This script downloads articles from the Official Gazette of the Basque Country (BOPV/EHAA) using the public API provided by the Basque Government in their [Open Data portal](https://opendata.euskadi.eus/api-bopv/?api=bopv). *Note: the API only provides data from 2008 onwards.*
