@@ -22,7 +22,7 @@ This repository contains a Python pipeline for downloading and parsing XML files
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/your-username/berria-crawl.git
+git clone https://github.com/hitz-zentroa/ILENIA-corpus-scripts.git
 cd berria
 ```
 
