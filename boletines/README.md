@@ -53,7 +53,11 @@ Example:
 - *anonymize_jsonl.py*
 This script detects and anonymizes sensitive entities in the extracted gazette content, including national ID numbers (DNI, NIE), email addresses, social security numbers, and bank account numbers (IBAN). The detected sensitive data is replaced with a placeholder, e.g. <DNI>.
 The script receives the following arguments as input:
- - `input`: input file name/path
- - `output`: output file name/path
- - `field`: name of the field to anonymize (field of the json)
- - `lang`: language for the placeholder, basque (eu) or spanish (es)
+	- `input`: input file name/path
+   	- `output`: output file name/path
+ 	- `field`: name of the field to anonymize (field of the json)
+	- `lang`: language for the placeholder, basque (eu) or spanish (es)
+ Example:
+ ```python
+    python anonymize_jsonl.py --input input.jsonl --output output.jsonl --field texto --lang eu
+```
